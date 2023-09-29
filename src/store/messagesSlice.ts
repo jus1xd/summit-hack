@@ -12,16 +12,16 @@ type TAbonents = {
 
 const initialState: TAbonents = {
   abonents: [
-    {
-      abonentId: "",
-      phone: "",
-      messages: [] as IFullMessage[],
-    },
-    {
-      abonentId: "1231414234234",
-      phone: "+79205550516",
-      messages: [] as IFullMessage[],
-    },
+    // {
+    //   abonentId: "",
+    //   phone: "",
+    //   messages: [] as IFullMessage[],
+    // },
+    // {
+    //   abonentId: "1231414234234",
+    //   phone: "+79205550516",
+    //   messages: [] as IFullMessage[],
+    // },
   ],
 };
 
