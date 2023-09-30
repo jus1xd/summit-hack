@@ -1,39 +1,71 @@
-import React, { useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/redux";
 import { saveMessage } from "../store/messagesSlice";
 import { messageApi } from "../store/services/messageService";
-import { IDataMessage } from "../models/IMessage";
+import { IDataMessage, IFullMessage } from "../models/IMessage";
+import MessageCard from "./MessageCard";
+import Alert from "./Alert";
+import { v4 as uuidv4 } from "uuid";
 
 type TProps = {
-  messages: IDataMessage[];
+  phone: string;
+  setSendMessageErrors: React.Dispatch<React.SetStateAction<string[]>>
 };
 
-const Conversation: React.FC<TProps> = ({ messages }) => {
-  const [localMessages, setLocalMessages] = React.useState<IDataMessage[]>(messages);
-  const [inputMessageValue, setInputMessageValue] = React.useState("Hi");
-  const [inputPhoneValue, setInputPhoneValue] = React.useState("+79205550517");
+type TSaveMessage = {
+  res: {
+    data: any;
+  };
+  newMessageData: IFullMessage;
+};
+
+const Conversation: React.FC<TProps> = ({ phone, setSendMessageErrors }) => {
+  const [localMessages, setLocalMessages] = React.useState<IFullMessage[]>([]);
+  const [inputMessageValue, setInputMessageValue] = React.useState("");
+  const abonents = useAppSelector((state) => state.messages.abonents);
+
   const dispatch = useAppDispatch();
 
-  const [sendMessage] = messageApi.useSendMessageMutation();
+  const [sendMessage, { isLoading }] = messageApi.useSendMessageMutation();
 
   useEffect(() => {
-    console.log(messages);
-  }, [messages]);
+    setLocalMessages(abonents.find((el) => el.phone === phone)?.messages || []);
+  }, [phone]);
+
+  const saveMessageHandler = (res: any) => {
+    let newMessage: IFullMessage = {
+      id: uuidv4(),
+      phone: phone,
+      content: inputMessageValue,
+      callbackUrl: "http://10.250.2.2:2050",
+      status: "Success",
+    };
+    setLocalMessages([...localMessages, newMessage]);
+    dispatch(saveMessage(newMessage));
+  };
+
+  useEffect(() => {
+    console.log(localMessages);
+  }, [localMessages]);
 
   const sendMessageHandler = () => {
-    if (
-      inputMessageValue.trim().length > 0 &&
-      inputPhoneValue.trim().length > 0
-    ) {
+    if (inputMessageValue.trim().length > 0 && phone && !isLoading) {
       const newMessageData: IDataMessage = {
-        content: inputMessageValue,
-        phone: inputPhoneValue,
-        callbackUrl: "http://10.250.2.2:2080/",
+        id: uuidv4(),
+        message: inputMessageValue,
+        phone,
+        callback_url: "http://10.250.2.2:2050/",
       };
-      // sendMessage(newMessageData).then((res: any) => {
-      // console.log(res.data);
-      dispatch(saveMessage(newMessageData));
-      // });
+
+      sendMessage(newMessageData).then((res: any) => {
+        if (res.error) {
+          let newError: string = res.error.data.detail;
+          setSendMessageErrors(prev => [...prev, newError]);
+        } else {
+          saveMessageHandler(res);
+          setInputMessageValue("");
+        }
+      });
     }
   };
 
@@ -44,38 +76,40 @@ const Conversation: React.FC<TProps> = ({ messages }) => {
   };
 
   return (
-    <div className="relative bg-darkGray w-2/3 h-[600px] rounded-lg">
-      {/* messages  */}
-      <div className="flex flex-col h-[calc(100%-110px)] overflow-y-scroll">
-        {messages.map((item: any) => {
-          return (
-            <div className="flex">
-              <div className="bg-[#ffffff20] w-[calc(100%-20px)] break-words rounded-lg px-3 py-2 m-2 mb-1">
-                {item.content}
-              </div>
+    <>
+
+      <div className="relative border-2 border-accentGreen bg-accentGreen dark:bg-darkBg p-2 w-2/3 h-[650px] rounded-2xl">
+        {/* messages  */}
+        {phone ? (
+          localMessages && localMessages.length > 0 ? (
+            <div className="flex flex-col h-[calc(100%-110px)] overflow-y-scroll">
+              {localMessages.map((item: any) => {
+                return <MessageCard key={item.id} messageData={item} />;
+              })}
             </div>
-          );
-        })}
+          ) : (
+            <div className="h-full flex items-center justify-center opacity-70">
+              Нет сообщений
+            </div>
+          )
+        ) : (
+          <div className="h-full flex items-center justify-center opacity-70">
+            Выберите диалог
+          </div>
+        )}
+
+        <div className="flex absolute bottom-4 w-[calc(100%-10px)] ml-3">
+          <input
+            onChange={(e) => setInputMessageValue(e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e)}
+            placeholder="Напишите свое сообщение..."
+            value={inputMessageValue}
+            type="text"
+            className="placeholder:text-[#ffffffc6] w-[calc(100%-30px)] p-2 rounded-lg bg-[#ffffff20] outline-none"
+          />
+        </div>
       </div>
-      <div className="flex flex-col ">
-        <input
-          onChange={(e) => setInputPhoneValue(e.target.value)}
-          onKeyDown={(e) => handleKeyDown(e)}
-          placeholder="Phone..."
-          value={inputPhoneValue}
-          type="text"
-          className="absolute bottom-14 left-[15px] w-[calc(100%-30px)] p-2 rounded-lg bg-[#ffffff20] outline-none"
-        />
-        <input
-          onChange={(e) => setInputMessageValue(e.target.value)}
-          onKeyDown={(e) => handleKeyDown(e)}
-          placeholder="Type your message here..."
-          value={inputMessageValue}
-          type="text"
-          className="absolute bottom-3 left-[15px] w-[calc(100%-30px)] p-2 rounded-lg bg-[#ffffff20] outline-none"
-        />
-      </div>
-    </div>
+    </>
   );
 };
 

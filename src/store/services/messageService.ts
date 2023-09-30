@@ -2,8 +2,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { IDataMessage, IFullMessage } from "../../models/IMessage";
 
+const token =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJiNWEyYjk5Mi1kZjYxLTQ4YjctODA0My04NGUwN2U2MWVkM2UiLCJ1bmlxdWVfbmFtZSI6Imdyb3VwLjIiLCJuYmYiOjE2OTM3NDg2MDksImV4cCI6MTcyNDg1MjYwOSwiaWF0IjoxNjkzNzQ4NjA5LCJpc3MiOiJodHRwczovL2RvYnJvemFpbS5ydS8iLCJhdWQiOiJodHRwczovL2RvYnJvemFpbS5ydS8ifQ.U8W9Qsg_akhlmRF-QT5NuQosmHz1yGK8MDAU2wa-5GI";
+
 // Define a service using a base URL and expected endpoints
-const baseUrl = "http://localhost:5000/";
+const baseUrl = "http://10.250.2.2:2050/";
 
 export const messageApi = createApi({
   reducerPath: "messageApi",
@@ -17,6 +20,9 @@ export const messageApi = createApi({
         url: `api/messages/${id}`,
         method: "GET",
         mode: "cors",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }),
       providesTags: ["Message"],
     }),
@@ -26,6 +32,9 @@ export const messageApi = createApi({
         method: "POST",
         mode: "cors",
         body: data,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }),
       invalidatesTags: ["Message"],
     }),

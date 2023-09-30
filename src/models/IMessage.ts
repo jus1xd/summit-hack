@@ -1,5 +1,5 @@
 export interface IFullMessage {
-  id: string;
+  id?: string;
   phone: string;
   content: string
   callbackUrl: string
@@ -7,7 +7,8 @@ export interface IFullMessage {
 }
 
 export interface IDataMessage {
+  id?: string
   phone: string;
-  content: string
-  callbackUrl: string
+  message: string
+  callback_url: string
 }
