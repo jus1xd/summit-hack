@@ -20,6 +20,21 @@
   src: url("./assets/fonts/Inter-Bold.ttf");
 }
 
+.text-animation {
+  opacity: 0;
+  animation: textAnim 1s ease-in 0.2s forwards;
+}
+
+@keyframes textAnim {
+  0% {
+    opacity: 0;
+  }
+
+  100%{
+    opacity: 100%;
+  }
+}
+
 body {
   color: #fff;
   background-color: #09090B;
